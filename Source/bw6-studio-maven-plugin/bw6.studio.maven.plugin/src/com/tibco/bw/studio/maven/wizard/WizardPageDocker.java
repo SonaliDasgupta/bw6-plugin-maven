@@ -40,6 +40,8 @@ public class WizardPageDocker extends WizardPage {
 	private Text dockerPort;
 	private Text dockerEnv;
 	private WizardPageK8S k8sPage;
+	private WizardPageSwarm swarmPage;
+	private Button swarm;
 	// private static int numDockerElements=0;//24;
 
 	private Text platform;
@@ -87,12 +89,15 @@ public class WizardPageDocker extends WizardPage {
 
 		final Button k8s = new Button(innerContainer, SWT.CHECK);
 		k8s.setSelection(false);
+		
 
 		k8s.addSelectionListener(new SelectionListener() {
 
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				if (k8s.getSelection()) {
+					if(swarm!=null)
+					swarm.setSelection(false);
 					platform.setText("K8S");
 					container.layout();
 					MavenWizardContext.INSTANCE.getNextButton().setEnabled(true);
@@ -109,6 +114,33 @@ public class WizardPageDocker extends WizardPage {
 
 		Label k8slabel = new Label(innerContainer, SWT.NONE);
 		k8slabel.setText("Kubernetes/Openshift");
+		
+		swarm = new Button(innerContainer, SWT.CHECK);
+		swarm.setSelection(false);
+		
+
+		swarm.addSelectionListener(new SelectionListener() {
+
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				if (swarm.getSelection()) {
+					k8s.setSelection(false);
+					platform.setText("Swarm");
+					container.layout();
+					MavenWizardContext.INSTANCE.getNextButton().setEnabled(true);
+				} else {
+					MavenWizardContext.INSTANCE.getNextButton().setEnabled(false);
+					platform.setText("");
+				}
+			}
+
+			@Override
+			public void widgetDefaultSelected(SelectionEvent e) {
+			}
+		});
+
+		Label swarmlabel = new Label(innerContainer, SWT.NONE);
+		swarmlabel.setText("Docker Swarm");
 	}
 
 	@Override
@@ -118,6 +150,14 @@ public class WizardPageDocker extends WizardPage {
 			k8sPage.setWizard(getWizard());
 			return k8sPage;
 		}
+		
+		
+		else if (platform.getText().equals("Swarm")) {
+			swarmPage = new WizardPageSwarm("Docker Swarm configuration", project);
+			swarmPage.setWizard(getWizard());
+			return swarmPage;
+		}
+		
 		IWizardPage page = super.getNextPage();
 		return page;
 	}
@@ -368,6 +408,9 @@ public class WizardPageDocker extends WizardPage {
 				module.setBwDockerModule(setBWCEDockerValues(module));
 				if (platform.getText().equals("K8S")) {
 					module.setBwk8sModule(k8sPage.setBWCEK8SValues(module));
+				}
+				else if(platform.getText().equals("Swarm")){
+					module.setBwSwarmModule(swarmPage.setSwarmValues(module));
 				}
 			}
 		}

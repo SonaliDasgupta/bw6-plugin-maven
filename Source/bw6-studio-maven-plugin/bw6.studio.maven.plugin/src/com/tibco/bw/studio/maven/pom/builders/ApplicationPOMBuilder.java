@@ -342,7 +342,7 @@ public class ApplicationPOMBuilder extends AbstractPOMBuilder implements IPOMBui
 			ReportPlugin p = new ReportPlugin();
 			p.setGroupId("com.tibco.plugins");
 			p.setArtifactId("bw6-maven-plugin");
-			p.setVersion("2.0.1");
+			p.setVersion("2.0.0");
 			reporting.getPlugins().add(p);
 		}
 		
@@ -394,6 +394,16 @@ public class ApplicationPOMBuilder extends AbstractPOMBuilder implements IPOMBui
         			}
         		}
     			addDockerK8SMavenPlugin(build, false);
+    		}
+    		
+    		else if("Swarm".equals(platform)){
+    			for(int i = 0; i < plugins.size(); i++) {
+        			Plugin plg = plugins.get(i);
+        			if(plg.getArtifactId().equals("docker-swarm-maven-plugin")) {
+        				build.removePlugin(plg);
+        			}
+        		}
+    			addDockerSwarmMavenPlugin(build, false);
     		}
     	}
     	model.setBuild(build);

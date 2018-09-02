@@ -102,7 +102,7 @@ public class ParentPOMBuilder extends AbstractPOMBuilder implements IPOMBuilder 
 				} else if (platform.equals("Mesos")) {
 
 				} else if (platform.equals("Swarm")) {
-
+						addDockerSwarmMavenPlugin(build, true);
 				}
 			}
 		}

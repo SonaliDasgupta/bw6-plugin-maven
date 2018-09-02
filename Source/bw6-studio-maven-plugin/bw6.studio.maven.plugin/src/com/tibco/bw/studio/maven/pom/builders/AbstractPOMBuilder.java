@@ -99,7 +99,7 @@ public abstract class AbstractPOMBuilder {
 		}
 		plugin.setGroupId("com.tibco.plugins");
 		plugin.setArtifactId("bw6-maven-plugin");
-		plugin.setVersion("2.0.1");
+		plugin.setVersion("2.0.0");
 		plugin.setExtensions("true");
 		addDeploymentDetails(plugin);
 	}
@@ -265,6 +265,89 @@ public abstract class AbstractPOMBuilder {
 		plugin.setConfiguration(config);
 		build.addPlugin(plugin);
 	}
+	
+	
+	protected void addDockerSwarmMavenPlugin(Build build, boolean skip) {
+		
+		
+		Plugin plugin = new Plugin();
+		plugin.setGroupId("com.tibco.bw");
+		plugin.setArtifactId("docker-swarm-maven-plugin");
+		plugin.setVersion("0.0.1-SNAPSHOT");
+		Xpp3Dom config = new Xpp3Dom("configuration");
+
+		Xpp3Dom child = new Xpp3Dom("skip");
+		child.setValue((skip)?"true":"false");
+		config.addChild(child);
+			
+		if(!skip){
+			
+			createSwarmPropertiesFiles();
+			
+		Xpp3Dom initChild = new Xpp3Dom("initSwarm");	
+
+		child = new Xpp3Dom("listenAddress");
+		child.setValue("${swarm.listen.address}");
+		initChild.addChild(child);
+
+		child = new Xpp3Dom("advertiseAddress");
+		child.setValue("${swarm.advertise.address}");
+		initChild.addChild(child);
+
+		child = new Xpp3Dom("forceNewCluster");
+		child.setValue("${swarm.force.cluster}");
+		initChild.addChild(child);
+		
+		child = new Xpp3Dom("forceNewCluster");
+		child.setValue("${swarm.force.cluster}");
+		initChild.addChild(child);
+		
+		config.addChild(initChild);
+		
+		Xpp3Dom joinChild = new Xpp3Dom("joinSwarm");
+		
+		child = new Xpp3Dom("remoteManagerAddress");
+		child.setValue("${swarm.remote.manager}");
+		joinChild.addChild(child);
+		
+		child = new Xpp3Dom("joinToken");
+		child.setValue("${swarm.join.token}");
+		joinChild.addChild(child);
+		
+		config.addChild(joinChild);
+		
+		Xpp3Dom updateChild = new Xpp3Dom("updateSwarmCluster");
+		
+		child = new Xpp3Dom("updateDataLocation");
+		child.setValue("${swarm.cluster.updatedata.location}");
+		updateChild.addChild(child);
+		config.addChild(updateChild);
+		
+		Xpp3Dom createServiceChild = new Xpp3Dom("createService");
+		
+		child = new Xpp3Dom("serviceDataLocation");
+		child.setValue("${swarm.servicedata.location}");
+		createServiceChild.addChild(child);
+		config.addChild(createServiceChild);
+		
+		Xpp3Dom updateServiceChild = new Xpp3Dom("updateService");
+		
+		child = new Xpp3Dom("serviceUpdateDataLocation");
+		child.setValue("${swarm.serviceupdate.data.location}");
+		createServiceChild.addChild(child);
+		config.addChild(updateServiceChild);
+			
+
+		}
+		
+	plugin.setConfiguration(config);
+	build.addPlugin(plugin);
+	
+	
+		
+	}
+	
+
 
 	protected void addDockerWithSkipMavenPlugin(Build build) {
 		Plugin plugin = new Plugin();
@@ -294,11 +377,7 @@ public abstract class AbstractPOMBuilder {
 		Xpp3Dom child = new Xpp3Dom("skip");
 		child.setValue("false");
 		config.addChild(child);
-		
-		
-		child = new Xpp3Dom("autoPull");
-		child.setValue("${bwdocker.autoPullImage}");
-		config.addChild(child);
+				
 
 		child = new Xpp3Dom("dockerHost");
 		child.setValue("${bwdocker.host}");
@@ -321,6 +400,10 @@ public abstract class AbstractPOMBuilder {
 		Xpp3Dom buildchild = new Xpp3Dom("build");
 		Xpp3Dom child2 = new Xpp3Dom("from");
 		child2.setValue("${bwdocker.from}");
+		buildchild.addChild(child2);
+		
+		child2 = new Xpp3Dom("imagePullPolicy");
+		child2.setValue("${bwdocker.autoPullImage}");
 		buildchild.addChild(child2);
 
 		child2 = new Xpp3Dom("maintainer");
@@ -501,6 +584,74 @@ public abstract class AbstractPOMBuilder {
 			e.printStackTrace();
 		}
 	}
+	
+	private void createSwarmPropertiesFiles(){
+		Properties properties = new Properties();
+		if(module.getBwSwarmModule()!=null){
+		properties.setProperty("swarm.listen.address", module.getBwSwarmModule().getListenAddr());
+		properties.setProperty("swarm.advertise.address", module.getBwSwarmModule().getAdvertiseAddr());
+		properties.setProperty("swarm.force.cluster", module.getBwSwarmModule().isForceNewCluster()?"true":"false");
+		properties.setProperty("swarm.datapath.address", module.getBwSwarmModule().getDataPathAddr());
+		properties.setProperty("swarm.join.token", module.getBwSwarmModule().getJoinToken());
+		properties.setProperty("swarm.remote.manager", module.getBwSwarmModule().getRemoteManagerAddr());
+		if(module.getBwSwarmModule().isEnableServiceCreation())
+		properties.setProperty("swarm.servicedata.location", module.getBwSwarmModule().getServiceData());
+		
+		if(module.getBwSwarmModule().isEnableServiceUpdation())
+		properties.setProperty("swarm.serviceupdate.data.location", module.getBwSwarmModule().getServiceUpdateData());
+		
+		if(module.getBwSwarmModule().isEnableSwarmUpdate())
+		properties.setProperty("swarm.cluster.updatedata.location", module.getBwSwarmModule().getUpdateData());
+		
+		File devfile = new File(getWorkspacepath() + File.separator + "swarm-dev.properties");
+		if(devfile.exists()) {
+			devfile.delete();
+		}
+		boolean done=false;
+		try {
+			done = devfile.createNewFile();
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		if(done) {
+			FileOutputStream fileOut=null;
+			try {
+				fileOut = new FileOutputStream(devfile);
+			} catch (FileNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			String msg = "Your " + module.getBwDockerModule().getPlatform() + " platform properties";
+			try {
+				if(fileOut!=null)
+				properties.store(fileOut, msg);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			try {
+				fileOut.close();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			File prodfile = new File(getWorkspacepath() + File.separator + "swarm-prod.properties");
+			if(prodfile.exists()) {
+				prodfile.delete();
+			}
+			try {
+				Files.copy(devfile.toPath(), prodfile.toPath());
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		
+		
+		}
+		
+	}
 
 	private void createDockerPropertiesFiles() {
 		try {
@@ -511,7 +662,7 @@ public abstract class AbstractPOMBuilder {
 			properties.setProperty("docker.image", module.getBwDockerModule().getDockerImageName());
 			properties.setProperty("bwdocker.containername", module.getBwDockerModule().getDockerAppName());
 			properties.setProperty("bwdocker.from", module.getBwDockerModule().getDockerImageFrom());
-			properties.setProperty("bwdocker.autoPullImage", (module.getBwDockerModule().isAutoPullImage()?"true":"false"));
+			properties.setProperty("bwdocker.autoPullImage", (module.getBwDockerModule().isAutoPullImage()?"Always":"IfNotPresent"));
 			properties.setProperty("bwdocker.maintainer", module.getBwDockerModule().getDockerImageMaintainer());
 			
 
@@ -578,7 +729,6 @@ public abstract class AbstractPOMBuilder {
 			}
 			properties.setProperty("bwpcf.instances", module.getBwpcfModule().getInstances());
 			properties.setProperty("bwpcf.memory", module.getBwpcfModule().getMemory());
-			properties.setProperty("bwpcf.diskQuota", module.getBwpcfModule().getDiskQuota());
 			properties.setProperty("bwpcf.buildpack", module.getBwpcfModule().getBuildpack());
 
 			//Add cf env variables
@@ -676,10 +826,6 @@ public abstract class AbstractPOMBuilder {
 
 		child = new Xpp3Dom("memory");
 		child.setValue("${bwpcf.memory}");
-		config.addChild(child);
-		
-		child = new Xpp3Dom("diskQuota");
-		child.setValue("${bwpcf.diskQuota}");
 		config.addChild(child);
 
 		child = new Xpp3Dom("buildpack");

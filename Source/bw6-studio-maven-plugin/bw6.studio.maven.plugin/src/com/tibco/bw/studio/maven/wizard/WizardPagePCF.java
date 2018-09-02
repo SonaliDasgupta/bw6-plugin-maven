@@ -35,10 +35,8 @@ public class WizardPagePCF extends WizardPage {
 	private Text appPCFAppName;
 	private Text appPCFInstances;
 	private Text appPCFMemory;
-	private Text appPCFDiskQuota;
 	private Text appPCFBuildpack;
 	private Text cfEnvVars;
-
 
 	protected WizardPagePCF(String pageName, BWProject project) {
 		super(pageName);
@@ -114,16 +112,6 @@ public class WizardPagePCF extends WizardPage {
 		appPCFMemory.setText("1024");
 		GridData memoryData = new GridData(50, 15);
 		appPCFMemory.setLayoutData(memoryData);
-		
-		
-		Label diskLabel = new Label(container, SWT.RIGHT);
-		diskLabel.setText("App Disk Quota");
-		
-		
-		appPCFDiskQuota = new Text(container, SWT.BORDER | SWT.SINGLE);
-		appPCFDiskQuota.setText("1024");
-		GridData diskData = new GridData(50, 15);
-		appPCFDiskQuota.setLayoutData(diskData);
 
 		Label buildpackLabel = new Label(container, SWT.RIGHT);
 		buildpackLabel.setText("App Buildpack");
@@ -187,7 +175,6 @@ public class WizardPagePCF extends WizardPage {
 		bwpcf.setAppName(appPCFAppName.getText());
 		bwpcf.setInstances(appPCFInstances.getText());
 		bwpcf.setMemory(appPCFMemory.getText());
-		bwpcf.setDiskQuota(appPCFDiskQuota.getText());
 		bwpcf.setBuildpack(appPCFBuildpack.getText());
 
 		List<String> envvars = new ArrayList<String>();
