@@ -77,6 +77,15 @@ public abstract class AbstractPOMBuilder {
 				properties.remove("k8s.property.file");
 			}
 		}
+		
+		if(platform.equals("Swarm")) {
+			properties.put("swarm.property.file", "swarm-dev.properties");
+		} else { //MIGHT NEED TO CUSTOMIZE FOR DEV / PROD PROFILES
+			if(properties.containsKey("swarm.property.file")) {
+				properties.remove("swarm.property.file");
+			}
+		}
+		
 		model.setProperties(properties);
 	}
 
@@ -165,6 +174,13 @@ public abstract class AbstractPOMBuilder {
 					fileChild2.setValue("${k8s.property.file}");
 					child.addChild(fileChild2);
 				}
+				else if(platfrom.equals("Swarm")){
+					Xpp3Dom fileChild2 = new Xpp3Dom("file");
+					fileChild2.setValue("${swarm.property.file}");
+					child.addChild(fileChild2);
+					
+					
+				}
 			}
 			config.addChild(child);
 			plugin.setConfiguration(config);
@@ -193,8 +209,10 @@ public abstract class AbstractPOMBuilder {
 						boolean dfound = false;
 						boolean defound = false;
 						boolean k8sfound = false;
+						boolean swarmfound = false;
 						int envIndex = 0;
 						int k8sIndex = 0;
+						int swarmIndex = 0;
 						for(int i = 0; i < childs.length; i++) {
 							Xpp3Dom child = childs[i];
 							if(child.getValue().equals("${docker.property.file}")) {
@@ -207,6 +225,10 @@ public abstract class AbstractPOMBuilder {
 							if(child.getValue().equals("${k8s.property.file}")) {
 								k8sfound = true;
 								k8sIndex = i;
+							}
+							if(child.getValue().equals("${swarm.property.file}")) {
+								swarmfound = true;
+								swarmIndex = i;
 							}
 						}
 						if(!dfound) {
@@ -227,6 +249,9 @@ public abstract class AbstractPOMBuilder {
 								if(k8sIndex > envIndex) { 
 									k8sIndex--;  //If K8s index is > the removed index of env, then decrement
 								}
+								if(swarmIndex > envIndex){
+									swarmIndex--;
+								}
 							}
 						}
 
@@ -241,6 +266,19 @@ public abstract class AbstractPOMBuilder {
 								files.removeChild(k8sIndex);
 								//Delete existing properties files for k8s
 							}
+						}
+							
+							if(platfrom.equals("Swarm")) {
+								if(!swarmfound) {
+									Xpp3Dom fileChild = new Xpp3Dom("file");
+									fileChild.setValue("${swarm.property.file}");
+									files.addChild(fileChild);
+								}
+							} else {
+								if(swarmfound) {
+									files.removeChild(swarmIndex);
+									//Delete existing properties files for swarm
+								}
 						}
 					}
 				}
