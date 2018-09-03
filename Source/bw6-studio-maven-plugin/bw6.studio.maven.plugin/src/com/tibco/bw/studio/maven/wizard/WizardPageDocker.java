@@ -41,6 +41,7 @@ public class WizardPageDocker extends WizardPage {
 	private Text dockerEnv;
 	private WizardPageK8S k8sPage;
 	private WizardPageSwarm swarmPage;
+	private WizardPage swarmServicePage;
 	private Button swarm;
 	// private static int numDockerElements=0;//24;
 
@@ -411,6 +412,8 @@ public class WizardPageDocker extends WizardPage {
 				}
 				else if(platform.getText().equals("Swarm")){
 					module.setBwSwarmModule(swarmPage.setSwarmValues(module));
+				
+					
 				}
 			}
 		}

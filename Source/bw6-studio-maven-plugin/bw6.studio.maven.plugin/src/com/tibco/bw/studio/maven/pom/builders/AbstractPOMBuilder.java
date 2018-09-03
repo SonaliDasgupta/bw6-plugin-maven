@@ -383,7 +383,7 @@ public abstract class AbstractPOMBuilder {
 		
 		child = new Xpp3Dom("serviceUpdateDataLocation");
 		child.setValue("${swarm.serviceupdate.data.location}");
-		createServiceChild.addChild(child);
+		updateServiceChild.addChild(child);
 		config.addChild(updateServiceChild);
 			
 

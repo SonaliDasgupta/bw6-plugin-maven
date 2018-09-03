@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.io.IOUtils;
+import org.eclipse.jface.wizard.IWizardPage;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -70,18 +71,9 @@ public class WizardPageSwarm extends WizardPage {
 	Label swarmUpdateFile;
 	
 	//SERVICE CREATION SECTION
-	private Label serviceDataLabel;
+	
 	private Button enableServiceCreation;
-	private Text serviceData;
-	private Button serviceDataButton;
-	
-	
-	//SERVICE UPDATION SECTION
-	private Label enableUpdateServiceLabel;
-	private Button enableServiceUpdation;
-	private Label serviceUpdateLabel;
-	private Text serviceUpdateFile;
-	private Button serviceUpdateBrowse;
+	private WizardPageSwarmService swarmServicePage;
 	
 	
 	
@@ -107,6 +99,17 @@ public class WizardPageSwarm extends WizardPage {
 		setControl(container);
 		
 		setPageComplete(true);
+	}
+	
+	@Override
+	public IWizardPage getNextPage(){
+		if(enableServiceCreation!=null && enableServiceCreation.getSelection()){
+			swarmServicePage = new WizardPageSwarmService("Swarm Service Configuration", project);
+			swarmServicePage.setWizard(getWizard());
+			return swarmServicePage;
+		}
+		IWizardPage page = super.getNextPage();
+		return page;
 	}
 	
 	private void createBoundary(String text){
@@ -148,14 +151,8 @@ public class WizardPageSwarm extends WizardPage {
 		createLeaveSection();
 		createBoundary("Swarm Cluster Update");
 		createUpdateSection();
-		createBoundary("Service Creation");
-		createServiceSection();
-		createBoundary("Service Update");
-		updateServiceSection();
-		
-		
-		
-		
+		createBoundary("Service Section");
+		createServiceSection();	
 
 
 	}
@@ -403,7 +400,7 @@ GridData specGrid = new GridData(200, 15);
 	
 	public void createServiceSection(){
 		  Label enableCreateServiceLabel = new Label(container, SWT.NONE);
-		  enableCreateServiceLabel.setText("Enable Service Creation");
+		  enableCreateServiceLabel.setText("Enable Service Creation / Updation");
 		  enableServiceCreation = new Button(container, SWT.CHECK);
 		  enableServiceCreation.setSelection(false);
 		  
@@ -411,19 +408,11 @@ GridData specGrid = new GridData(200, 15);
 
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				if(enableServiceCreation.getSelection()){
-					serviceDataLabel.setVisible(true);
-					serviceDataButton.setVisible(true);
-					serviceData.setVisible(true);
-					
-					
-				}
-				else{
-					serviceDataLabel.setVisible(false);
-					serviceDataButton.setVisible(false);
-					serviceData.setVisible(false);
-					
-				}
+				if(enableServiceCreation.getSelection())
+				MavenWizardContext.INSTANCE.getNextButton().setEnabled(true);
+				else
+					MavenWizardContext.INSTANCE.getNextButton().setEnabled(false);
+				//getNextPage();
 				
 				
 			}
@@ -438,87 +427,10 @@ GridData specGrid = new GridData(200, 15);
 		  
 		  createBoundary("");
 		    
-		   serviceDataLabel = new Label(container, SWT.NONE);
-			serviceDataLabel.setText("Service Data");
-			serviceDataLabel.setVisible(false);
-			serviceData = new Text(container, SWT.BORDER | SWT.SINGLE);
-			serviceDataButton = new Button(container, SWT.PUSH);
-			serviceDataButton.setText("Browse ...");
-			serviceDataButton.addSelectionListener(new SelectionAdapter() {
-				public void widgetSelected(SelectionEvent e) {
-					DirectoryDialog dialog = new DirectoryDialog(new Shell());
-					String path = dialog.open();
-					if (path != null) {
-
-						serviceData.setText(path);
-
-					}
-				}
-			});
-			serviceDataButton.setVisible(false);
-			GridData serviceGrid=  new GridData(100,15);
-			serviceData.setLayoutData(serviceGrid);
-			serviceData.setVisible(false);
+		   
 	}
 	
-	public void updateServiceSection(){
-		  enableUpdateServiceLabel = new Label(container, SWT.NONE);
-		  enableUpdateServiceLabel.setText("Enable Service Updation");
-		  enableServiceUpdation = new Button(container, SWT.CHECK);
-		  enableServiceUpdation.setSelection(false);
-		  
-		  enableServiceUpdation.addSelectionListener(new SelectionListener(){
 
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				if(enableServiceUpdation.getSelection()){
-					serviceUpdateLabel.setVisible(true);
-					serviceUpdateFile.setVisible(true);
-					serviceUpdateBrowse.setVisible(true);
-				}
-				else{
-					serviceUpdateLabel.setVisible(false);
-					serviceUpdateFile.setVisible(false);
-					serviceUpdateBrowse.setVisible(false);
-				}
-				
-			}
-
-			@Override
-			public void widgetDefaultSelected(SelectionEvent e) {
-				// TODO Auto-generated method stub
-				
-			}
-			  
-		  });
-		  
-		  createBoundary("");
-		  
-		  
-		  serviceUpdateLabel = new Label(container, SWT.NONE);
-		  serviceUpdateLabel.setText("Service Update file location"); //SET DEFAULT LOCATION FOR IT LATER
-		  serviceUpdateFile= new Text(container, SWT.BORDER | SWT.SINGLE);
-		  serviceUpdateBrowse = new Button(container, SWT.PUSH);
-		  serviceUpdateBrowse.setText("Browse ...");
-			serviceUpdateBrowse.addSelectionListener(new SelectionAdapter() {
-				public void widgetSelected(SelectionEvent e) {
-					DirectoryDialog dialog = new DirectoryDialog(new Shell());
-					String path = dialog.open();
-					if (path != null) {
-
-						serviceUpdateFile.setText(path);
-
-					}
-				}
-			});
-			
-			serviceUpdateLabel.setVisible(false);
-			serviceUpdateFile.setVisible(false);
-			serviceUpdateBrowse.setVisible(false);
-		  
-		 
-		    
-	}
 	
 	
 
@@ -549,7 +461,7 @@ GridData specGrid = new GridData(200, 15);
 		bwSwarm.setEnableSwarmUpdate(allowUpdate.getSelection());
 		
 		if(allowUpdate.getSelection())
-		bwSwarm.setUpdateData(getContents(swarmUpdateFile.getText())); //FOR NOW SETTING IT TO THIS, LATER EAD DATA FROM FILE
+		bwSwarm.setUpdateData(swarmUpdateFile.getText()); //FOR NOW SETTING IT TO THIS, LATER EAD DATA FROM FILE
 		
 		bwSwarm.setVersion(version.getText());
 		
@@ -561,13 +473,15 @@ GridData specGrid = new GridData(200, 15);
 		
 		bwSwarm.setEnableServiceCreation(enableServiceCreation.getSelection());
 		
-		if(enableServiceCreation.getSelection())
-		bwSwarm.setServiceData(getContents(serviceData.getText()));
+		if(swarmServicePage!=null && enableServiceCreation.getSelection()){
+		bwSwarm.setServiceData(swarmServicePage.getServiceData());
 		
-		bwSwarm.setEnableServiceUpdation(enableServiceUpdation.getSelection());
+		bwSwarm.setEnableServiceUpdation(swarmServicePage.getEnableServiceUpdation());
 		
-		if(enableServiceUpdation.getSelection())
-		bwSwarm.setServiceUpdateData(getContents(serviceUpdateFile.getText()));
+		if(swarmServicePage.getEnableServiceUpdation())
+		bwSwarm.setServiceUpdateData(swarmServicePage.getServiceUpdateFile());
+		
+		}
 		
 		
 		
@@ -585,25 +499,6 @@ GridData specGrid = new GridData(200, 15);
 		return bwSwarm;
 	}
 	
-	public String getContents(String file){
-		StringWriter writer = new StringWriter();
-		InputStream is= null;
-		try {
-			is = new FileInputStream(file);
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		if(is!=null){
-			try {
-				IOUtils.copy(is,  writer);
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-		return writer.toString();
-	}
 
 	
 	@Override

@@ -65,12 +65,17 @@ public class MavenWizard extends Wizard {
 			MavenWizardContext.INSTANCE.setPCFPage(new WizardPagePCF("PCF Deployment Configuration",project));
 			MavenWizardContext.INSTANCE.setDockerPage(new WizardPageDocker("Docker Deployment Configuration", project));
 			MavenWizardContext.INSTANCE.setKubernetesPage(new WizardPageK8S("Kubernetes Deployment Configuration", project));
+			MavenWizardContext.INSTANCE.setSwarmPage(new WizardPageSwarm("Swarm Deployment Configuration", project));
+			MavenWizardContext.INSTANCE.setSwarmServicePage(new WizardPageSwarmService("Swarm Service Configuration", project));
+			
 			
 			addPage(MavenWizardContext.INSTANCE.getConfigPage());
 			addPage(MavenWizardContext.INSTANCE.getEnterprisePage());
 			addPage(MavenWizardContext.INSTANCE.getPCFPage());
 			addPage(MavenWizardContext.INSTANCE.getDockerPage());
 			addPage(MavenWizardContext.INSTANCE.getKubernetesPage());
+			addPage(MavenWizardContext.INSTANCE.getSwarmPage());
+			addPage(MavenWizardContext.INSTANCE.getSwarmServicePage());
 		}
 		catch(Exception e )
 		{

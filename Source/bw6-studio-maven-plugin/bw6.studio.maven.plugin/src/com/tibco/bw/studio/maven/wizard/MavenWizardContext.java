@@ -15,6 +15,8 @@ public class MavenWizardContext {
 	private WizardPagePCF wizardPagePCF;
 	private WizardPageDocker wizardPageDocker;
 	private WizardPageK8S wizardPageK8S;
+	private WizardPageSwarm wizardPageSwarm;
+	private WizardPageSwarmService wizardPageSwarmService;
 	
 	
 	private List<BWProjectTypes> projectTypes = new ArrayList<BWProjectTypes>();
@@ -81,6 +83,27 @@ public class MavenWizardContext {
 	public WizardPageK8S getKubernetesPage() {
 		return wizardPageK8S;
 	}
+	
+	public void setSwarmPage(WizardPageSwarm wizardPageSwarm){
+		this.wizardPageSwarm = wizardPageSwarm;
+	}
+	
+
+	
+	public WizardPageSwarmService getSwarmServicePage(){
+		return wizardPageSwarmService;
+	}
+	
+	
+	public void setSwarmServicePage(WizardPageSwarmService wizardPageSwarmService){
+		this.wizardPageSwarmService = wizardPageSwarmService;
+	}
+	
+	
+	public WizardPageSwarm getSwarmPage(){
+		return wizardPageSwarm;
+	}
+	
 	public void setPCFPage(WizardPagePCF wizardPagePCF) {
 		this.wizardPagePCF = wizardPagePCF;
 	}
