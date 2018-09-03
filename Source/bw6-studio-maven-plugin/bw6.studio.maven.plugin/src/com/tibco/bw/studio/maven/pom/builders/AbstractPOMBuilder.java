@@ -354,6 +354,17 @@ public abstract class AbstractPOMBuilder {
 		
 		config.addChild(joinChild);
 		
+		
+
+		Xpp3Dom leaveChild = new Xpp3Dom("leaveSwarm");
+		
+		child = new Xpp3Dom("forceLeave");
+		child.setValue("${swarm.force.leave}");
+		leaveChild.addChild(child);
+		
+		config.addChild(leaveChild);
+		
+		
 		Xpp3Dom updateChild = new Xpp3Dom("updateSwarmCluster");
 		
 		child = new Xpp3Dom("updateDataLocation");
@@ -640,6 +651,12 @@ public abstract class AbstractPOMBuilder {
 		
 		if(module.getBwSwarmModule().isEnableSwarmUpdate())
 		properties.setProperty("swarm.cluster.updatedata.location", module.getBwSwarmModule().getUpdateData());
+		
+		if(module.getBwSwarmModule().isForceLeave())
+			properties.setProperty("swarm.force.leave", "true");
+		else
+			properties.setProperty("swarm.force.leave", "false");
+		
 		
 		File devfile = new File(getWorkspacepath() + File.separator + "swarm-dev.properties");
 		if(devfile.exists()) {
