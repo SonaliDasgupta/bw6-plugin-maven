@@ -173,7 +173,7 @@ public class WizardPageSwarm extends WizardPage {
 		listenAddrLabel.setText("Listen Address");
 
 		listenAddr = new Text(container, SWT.BORDER | SWT.SINGLE);
-	    listenAddr.setText("0.0.0.0:2377"); //ADD THIS IN PREFERENCE PAGE LATER
+	    listenAddr.setText("tcp://0.0.0.0:2377"); //ADD THIS IN PREFERENCE PAGE LATER
 		GridData listenAddrData = new GridData(200, 15);
 		listenAddr.setLayoutData(listenAddrData);
 
@@ -183,7 +183,7 @@ public class WizardPageSwarm extends WizardPage {
 		advertiseAddrLabel.setText("Advertise Address");
 
 		advertiseAddr = new Text(container, SWT.BORDER | SWT.SINGLE);
-		advertiseAddr.setText("192.168.0.103:2377");
+		advertiseAddr.setText("tcp://192.168.0.103:2377");
 		GridData advertiseAddrData = new GridData(50, 15);
 		advertiseAddr.setLayoutData(advertiseAddrData);
 		
@@ -270,7 +270,7 @@ GridData specGrid = new GridData(200, 15);
 		remoteAddrLabel.setText("Remote Manager Address");
 
 		remoteManagerAddr = new Text(container, SWT.BORDER | SWT.SINGLE);
-		remoteManagerAddr.setText("192.168.0.103:2377"); //CHANGE THIS LATER
+		remoteManagerAddr.setText("tcp://192.168.0.103:2377"); //CHANGE THIS LATER
 		GridData remoteAddrData = new GridData(200, 15);
 		remoteManagerAddr.setLayoutData(remoteAddrData);
 		
