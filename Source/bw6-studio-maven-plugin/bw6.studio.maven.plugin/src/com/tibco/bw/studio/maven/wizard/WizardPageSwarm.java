@@ -473,8 +473,13 @@ GridData specGrid = new GridData(200, 15);
 		
 		bwSwarm.setEnableServiceCreation(enableServiceCreation.getSelection());
 		
+		
 		if(swarmServicePage!=null && enableServiceCreation.getSelection()){
 		bwSwarm.setServiceData(swarmServicePage.getServiceData());
+		
+		bwSwarm.setBuildImage(swarmServicePage.isBuildImage());
+		
+		bwSwarm.setMavenHome(swarmServicePage.getMavenHome());
 		
 		bwSwarm.setEnableServiceUpdation(swarmServicePage.getEnableServiceUpdation());
 		

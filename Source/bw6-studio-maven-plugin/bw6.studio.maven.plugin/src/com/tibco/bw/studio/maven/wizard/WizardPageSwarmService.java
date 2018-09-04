@@ -28,6 +28,12 @@ public class WizardPageSwarmService extends WizardPage{
 	private Label serviceDataLabel;
 	private Text serviceData;
 	private Button serviceDataButton;
+	private Label buildImageLabel;
+	private Button buildImage; //CHECK IF IMAGE IS PRESENT, ONLY IF NOT PRESENT,BUILD IT
+	
+	private Label mavenHomeLabel;
+	private Button mavenHomeBrowse;
+	private Text mavenHome;
 	
 	
 	//SERVICE UPDATION SECTION
@@ -113,7 +119,7 @@ public class WizardPageSwarmService extends WizardPage{
 		  
 		  createBoundary("");
 		  
-		  
+			  
 		  serviceUpdateLabel = new Label(container, SWT.NONE);
 		  serviceUpdateLabel.setText("Service Update file location"); //SET DEFAULT LOCATION FOR IT LATER
 		  serviceUpdateFile= new Text(container, SWT.BORDER | SWT.SINGLE);
@@ -161,6 +167,37 @@ public class WizardPageSwarmService extends WizardPage{
 		GridData serviceGrid=  new GridData(100,15);
 		serviceData.setLayoutData(serviceGrid);
 		
+		createBoundary("");
+		buildImageLabel = new Label(container, SWT.NONE);
+		buildImageLabel.setText("Build Docker Image for Service");
+		buildImage = new Button(container, SWT.CHECK);
+		
+		createBoundary("");
+		
+		  mavenHomeLabel = new Label(container, SWT.NONE);
+		  mavenHomeLabel.setText("Maven Home");
+		  GridData mData = new GridData(200, 15);
+		  mData.horizontalSpan = 4;
+		  mavenHome= new Text(container, SWT.BORDER | SWT.SINGLE);
+		  mavenHome.setLayoutData(mData);
+		  mavenHomeBrowse = new Button(container, SWT.PUSH);
+		  mavenHomeBrowse.setText("Browse ...");
+		  mavenHomeBrowse.addSelectionListener(new SelectionAdapter() {
+				public void widgetSelected(SelectionEvent e) {
+					DirectoryDialog dialog = new DirectoryDialog(new Shell());
+					String path = dialog.open();
+					if (path != null) {
+
+						mavenHome.setText(path);
+
+					}
+				}
+			}); 	  
+		  
+		 
+		
+		
+		
 	}
 	
 	public String getServiceData(){
@@ -182,10 +219,15 @@ public class WizardPageSwarmService extends WizardPage{
 			return  serviceUpdateFile.getText();
 		return "";
 	}
-
 	
-		
+	public boolean isBuildImage(){
+		if(buildImage!=null)
+		return buildImage.getSelection()?true:false;
+		return false;
+	}
 	
-	
+	public String getMavenHome(){
+		return (mavenHome!=null)?mavenHome.getText():"";
+	}	
 
 }

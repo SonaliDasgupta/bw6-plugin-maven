@@ -41,6 +41,10 @@ public class BWSwarmModule {
 	
 	private String serviceData;
 	
+	private boolean buildImage;
+	
+	private String mavenHome;
+	
 	private boolean enableServiceUpdation;
 	
 	private String serviceUpdateData;
@@ -175,6 +179,22 @@ public class BWSwarmModule {
 
 	public void setServiceData(String serviceData) {
 		this.serviceData = serviceData;
+	}
+	
+	public boolean isBuildImage(){
+		return buildImage;
+	}
+	
+	public void setBuildImage(boolean buildImage){
+		this.buildImage= buildImage;
+	}
+	
+	public String getMavenHome(){
+		return mavenHome;
+	}
+	
+	public void setMavenHome(String mavenHome){
+		this.mavenHome = mavenHome;
 	}
 
 	public boolean isEnableServiceUpdation() {

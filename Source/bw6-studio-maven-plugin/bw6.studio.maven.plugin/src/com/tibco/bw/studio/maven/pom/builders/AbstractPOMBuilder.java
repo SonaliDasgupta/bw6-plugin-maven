@@ -377,6 +377,15 @@ public abstract class AbstractPOMBuilder {
 		child = new Xpp3Dom("serviceDataLocation");
 		child.setValue("${swarm.servicedata.location}");
 		createServiceChild.addChild(child);
+		
+		child = new Xpp3Dom("serviceImageBuild");
+		child.setValue("${swarm.service.buildImage}");
+		createServiceChild.addChild(child);
+		
+		child = new Xpp3Dom("mavenHome");
+		child.setValue("${swarm.mavenhome}");
+		createServiceChild.addChild(child);
+		
 		config.addChild(createServiceChild);
 		
 		Xpp3Dom updateServiceChild = new Xpp3Dom("updateService");
@@ -643,12 +652,16 @@ public abstract class AbstractPOMBuilder {
 		properties.setProperty("swarm.datapath.address", module.getBwSwarmModule().getDataPathAddr());
 		properties.setProperty("swarm.join.token", module.getBwSwarmModule().getJoinToken());
 		properties.setProperty("swarm.remote.manager", module.getBwSwarmModule().getRemoteManagerAddr());
-		if(module.getBwSwarmModule().isEnableServiceCreation())
+		if(module.getBwSwarmModule().isEnableServiceCreation()){
 		properties.setProperty("swarm.servicedata.location", module.getBwSwarmModule().getServiceData());
+		properties.setProperty("swarm.service.buildImage", module.getBwSwarmModule().isBuildImage()?"true":"false");
+		properties.setProperty("swarm.mavenhome", module.getBwSwarmModule().getMavenHome());
 		
 		if(module.getBwSwarmModule().isEnableServiceUpdation())
 		properties.setProperty("swarm.serviceupdate.data.location", module.getBwSwarmModule().getServiceUpdateData());
 		
+		
+		}
 		if(module.getBwSwarmModule().isEnableSwarmUpdate())
 		properties.setProperty("swarm.cluster.updatedata.location", module.getBwSwarmModule().getUpdateData());
 		
