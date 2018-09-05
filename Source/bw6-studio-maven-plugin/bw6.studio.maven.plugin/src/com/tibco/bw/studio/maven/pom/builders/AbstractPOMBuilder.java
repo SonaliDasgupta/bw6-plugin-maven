@@ -77,7 +77,7 @@ public abstract class AbstractPOMBuilder {
 				properties.remove("k8s.property.file");
 			}
 		}
-		
+
 		if(platform.equals("Swarm")) {
 			properties.put("swarm.property.file", "swarm-dev.properties");
 		} else { //MIGHT NEED TO CUSTOMIZE FOR DEV / PROD PROFILES
@@ -85,7 +85,7 @@ public abstract class AbstractPOMBuilder {
 				properties.remove("swarm.property.file");
 			}
 		}
-		
+
 		model.setProperties(properties);
 	}
 
@@ -178,8 +178,8 @@ public abstract class AbstractPOMBuilder {
 					Xpp3Dom fileChild2 = new Xpp3Dom("file");
 					fileChild2.setValue("${swarm.property.file}");
 					child.addChild(fileChild2);
-					
-					
+
+
 				}
 			}
 			config.addChild(child);
@@ -267,18 +267,18 @@ public abstract class AbstractPOMBuilder {
 								//Delete existing properties files for k8s
 							}
 						}
-							
-							if(platfrom.equals("Swarm")) {
-								if(!swarmfound) {
-									Xpp3Dom fileChild = new Xpp3Dom("file");
-									fileChild.setValue("${swarm.property.file}");
-									files.addChild(fileChild);
-								}
-							} else {
-								if(swarmfound) {
-									files.removeChild(swarmIndex);
-									//Delete existing properties files for swarm
-								}
+
+						if(platfrom.equals("Swarm")) {
+							if(!swarmfound) {
+								Xpp3Dom fileChild = new Xpp3Dom("file");
+								fileChild.setValue("${swarm.property.file}");
+								files.addChild(fileChild);
+							}
+						} else {
+							if(swarmfound) {
+								files.removeChild(swarmIndex);
+								//Delete existing properties files for swarm
+							}
 						}
 					}
 				}
@@ -294,20 +294,20 @@ public abstract class AbstractPOMBuilder {
 		plugin.setGroupId("io.fabric8");
 		plugin.setArtifactId("fabric8-maven-plugin");
 		plugin.setVersion("3.5.41");
-		
+
 		Xpp3Dom config = new Xpp3Dom("configuration");
 		Xpp3Dom child = new Xpp3Dom("skip");
 		child.setValue(String.valueOf(skip));
 		config.addChild(child);
-	
+
 		plugin.setConfiguration(config);
 		build.addPlugin(plugin);
 	}
-	
-	
+
+
 	protected void addDockerSwarmMavenPlugin(Build build, boolean skip) {
-		
-		
+
+
 		Plugin plugin = new Plugin();
 		plugin.setGroupId("com.tibco.bw");
 		plugin.setArtifactId("docker-swarm-maven-plugin");
@@ -317,94 +317,99 @@ public abstract class AbstractPOMBuilder {
 		Xpp3Dom child = new Xpp3Dom("skip");
 		child.setValue((skip)?"true":"false");
 		config.addChild(child);
-			
+
 		if(!skip){
-			
+
 			createSwarmPropertiesFiles();
+
+			Xpp3Dom initChild = new Xpp3Dom("initSwarm");	
+
+			child = new Xpp3Dom("listenAddress");
+			child.setValue("${swarm.listen.address}");
+			initChild.addChild(child);
+
+			child = new Xpp3Dom("advertiseAddress");
+			child.setValue("${swarm.advertise.address}");
+			initChild.addChild(child);
+
+			child = new Xpp3Dom("forceNewCluster");
+			child.setValue("${swarm.force.cluster}");
+			initChild.addChild(child);
+
+			child = new Xpp3Dom("forceNewCluster");
+			child.setValue("${swarm.force.cluster}");
+			initChild.addChild(child);
+
+			config.addChild(initChild);
+
+			Xpp3Dom joinChild = new Xpp3Dom("joinSwarm");
+
+			child = new Xpp3Dom("remoteManagerAddress");
+			child.setValue("${swarm.remote.manager}");
+			joinChild.addChild(child);
+
+			child = new Xpp3Dom("joinToken");
+			child.setValue("${swarm.join.token}");
+			joinChild.addChild(child);
+
+			config.addChild(joinChild);
+
+
+
+			Xpp3Dom leaveChild = new Xpp3Dom("leaveSwarm");
+
+			child = new Xpp3Dom("forceLeave");
+			child.setValue("${swarm.force.leave}");
+			leaveChild.addChild(child);
+
+			config.addChild(leaveChild);
+
+
+			Xpp3Dom updateChild = new Xpp3Dom("updateSwarmCluster");
+
+			child = new Xpp3Dom("updateDataLocation");
+			child.setValue("${swarm.cluster.updatedata.location}");
+			updateChild.addChild(child);
+			config.addChild(updateChild);
+
+			Xpp3Dom createServiceChild = new Xpp3Dom("createService");
+
+			child = new Xpp3Dom("serviceDataLocation");
+			child.setValue("${swarm.servicedata.location}");
+			createServiceChild.addChild(child);
+
+			child = new Xpp3Dom("serviceImageBuild");
+			child.setValue("${swarm.service.buildImage}");
+			createServiceChild.addChild(child);
+
+			child = new Xpp3Dom("mavenHome");
+			child.setValue("${swarm.mavenhome}");
+			createServiceChild.addChild(child);
+
+			config.addChild(createServiceChild);
+
+			Xpp3Dom updateServiceChild = new Xpp3Dom("updateService");
 			
-		Xpp3Dom initChild = new Xpp3Dom("initSwarm");	
-
-		child = new Xpp3Dom("listenAddress");
-		child.setValue("${swarm.listen.address}");
-		initChild.addChild(child);
-
-		child = new Xpp3Dom("advertiseAddress");
-		child.setValue("${swarm.advertise.address}");
-		initChild.addChild(child);
-
-		child = new Xpp3Dom("forceNewCluster");
-		child.setValue("${swarm.force.cluster}");
-		initChild.addChild(child);
-		
-		child = new Xpp3Dom("forceNewCluster");
-		child.setValue("${swarm.force.cluster}");
-		initChild.addChild(child);
-		
-		config.addChild(initChild);
-		
-		Xpp3Dom joinChild = new Xpp3Dom("joinSwarm");
-		
-		child = new Xpp3Dom("remoteManagerAddress");
-		child.setValue("${swarm.remote.manager}");
-		joinChild.addChild(child);
-		
-		child = new Xpp3Dom("joinToken");
-		child.setValue("${swarm.join.token}");
-		joinChild.addChild(child);
-		
-		config.addChild(joinChild);
-		
-		
-
-		Xpp3Dom leaveChild = new Xpp3Dom("leaveSwarm");
-		
-		child = new Xpp3Dom("forceLeave");
-		child.setValue("${swarm.force.leave}");
-		leaveChild.addChild(child);
-		
-		config.addChild(leaveChild);
-		
-		
-		Xpp3Dom updateChild = new Xpp3Dom("updateSwarmCluster");
-		
-		child = new Xpp3Dom("updateDataLocation");
-		child.setValue("${swarm.cluster.updatedata.location}");
-		updateChild.addChild(child);
-		config.addChild(updateChild);
-		
-		Xpp3Dom createServiceChild = new Xpp3Dom("createService");
-		
-		child = new Xpp3Dom("serviceDataLocation");
-		child.setValue("${swarm.servicedata.location}");
-		createServiceChild.addChild(child);
-		
-		child = new Xpp3Dom("serviceImageBuild");
-		child.setValue("${swarm.service.buildImage}");
-		createServiceChild.addChild(child);
-		
-		child = new Xpp3Dom("mavenHome");
-		child.setValue("${swarm.mavenhome}");
-		createServiceChild.addChild(child);
-		
-		config.addChild(createServiceChild);
-		
-		Xpp3Dom updateServiceChild = new Xpp3Dom("updateService");
-		
-		child = new Xpp3Dom("serviceUpdateDataLocation");
-		child.setValue("${swarm.serviceupdate.data.location}");
-		updateServiceChild.addChild(child);
-		config.addChild(updateServiceChild);
+			child = new Xpp3Dom("usedockerimage");
+			child.setValue("${swarm.serviceupdate.usedockerimage}");
+			updateServiceChild.addChild(child);
 			
+
+			child = new Xpp3Dom("serviceUpdateDataLocation");
+			child.setValue("${swarm.serviceupdate.data.location}");
+			updateServiceChild.addChild(child);
+			config.addChild(updateServiceChild);
+
 
 		}
-		
-	plugin.setConfiguration(config);
-	build.addPlugin(plugin);
-	
-	
-		
+
+		plugin.setConfiguration(config);
+		build.addPlugin(plugin);
+
+
+
 	}
-	
+
 
 
 	protected void addDockerWithSkipMavenPlugin(Build build) {
@@ -435,7 +440,7 @@ public abstract class AbstractPOMBuilder {
 		Xpp3Dom child = new Xpp3Dom("skip");
 		child.setValue("false");
 		config.addChild(child);
-				
+
 
 		child = new Xpp3Dom("dockerHost");
 		child.setValue("${bwdocker.host}");
@@ -459,7 +464,7 @@ public abstract class AbstractPOMBuilder {
 		Xpp3Dom child2 = new Xpp3Dom("from");
 		child2.setValue("${bwdocker.from}");
 		buildchild.addChild(child2);
-		
+
 		child2 = new Xpp3Dom("imagePullPolicy");
 		child2.setValue("${bwdocker.autoPullImage}");
 		buildchild.addChild(child2);
@@ -581,7 +586,7 @@ public abstract class AbstractPOMBuilder {
 			e.printStackTrace();
 		}
 	}
-	
+
 	private void createK8SPropertiesFiles() {
 		try {
 			Properties properties = new Properties();
@@ -600,7 +605,7 @@ public abstract class AbstractPOMBuilder {
 				properties.setProperty("fabric8.service.type", "LoadBalancer");
 			}
 			else{
-			properties.setProperty("fabric8.service.type", module.getBwk8sModule().getServiceType());
+				properties.setProperty("fabric8.service.type", module.getBwk8sModule().getServiceType());
 			}
 			properties.setProperty("fabric8.service.port", "80");
 			properties.setProperty("fabric8.provider", "Tibco");
@@ -608,7 +613,7 @@ public abstract class AbstractPOMBuilder {
 			properties.setProperty("fabric8.namespace", module.getBwk8sModule().getK8sNamespace());
 			properties.setProperty("fabric8.apply.namespace", module.getBwk8sModule().getK8sNamespace());
 			if(module.getBwk8sModule().getResourcesLocation()!=null){
-			properties.setProperty("fabric8.resources.location", module.getBwk8sModule().getResourcesLocation());
+				properties.setProperty("fabric8.resources.location", module.getBwk8sModule().getResourcesLocation());
 			}
 
 			//Add k8s env variables
@@ -642,83 +647,90 @@ public abstract class AbstractPOMBuilder {
 			e.printStackTrace();
 		}
 	}
-	
+
 	private void createSwarmPropertiesFiles(){
 		Properties properties = new Properties();
 		if(module.getBwSwarmModule()!=null){
-		properties.setProperty("swarm.listen.address", module.getBwSwarmModule().getListenAddr());
-		properties.setProperty("swarm.advertise.address", module.getBwSwarmModule().getAdvertiseAddr());
-		properties.setProperty("swarm.force.cluster", module.getBwSwarmModule().isForceNewCluster()?"true":"false");
-		properties.setProperty("swarm.datapath.address", module.getBwSwarmModule().getDataPathAddr());
-		properties.setProperty("swarm.join.token", module.getBwSwarmModule().getJoinToken());
-		properties.setProperty("swarm.remote.manager", module.getBwSwarmModule().getRemoteManagerAddr());
-		if(module.getBwSwarmModule().isEnableServiceCreation()){
-		properties.setProperty("swarm.servicedata.location", module.getBwSwarmModule().getServiceData());
-		properties.setProperty("swarm.service.buildImage", module.getBwSwarmModule().isBuildImage()?"true":"false");
-		properties.setProperty("swarm.mavenhome", module.getBwSwarmModule().getMavenHome());
-		
-		if(module.getBwSwarmModule().isEnableServiceUpdation())
-		properties.setProperty("swarm.serviceupdate.data.location", module.getBwSwarmModule().getServiceUpdateData());
-		
-		
-		}
-		if(module.getBwSwarmModule().isEnableSwarmUpdate())
-		properties.setProperty("swarm.cluster.updatedata.location", module.getBwSwarmModule().getUpdateData());
-		
-		if(module.getBwSwarmModule().isForceLeave())
-			properties.setProperty("swarm.force.leave", "true");
-		else
-			properties.setProperty("swarm.force.leave", "false");
-		
-		
-		File devfile = new File(getWorkspacepath() + File.separator + "swarm-dev.properties");
-		if(devfile.exists()) {
-			devfile.delete();
-		}
-		boolean done=false;
-		try {
-			done = devfile.createNewFile();
-		} catch (IOException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
-		if(done) {
-			FileOutputStream fileOut=null;
-			try {
-				fileOut = new FileOutputStream(devfile);
-			} catch (FileNotFoundException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+			properties.setProperty("swarm.listen.address", module.getBwSwarmModule().getListenAddr());
+			properties.setProperty("swarm.advertise.address", module.getBwSwarmModule().getAdvertiseAddr());
+			properties.setProperty("swarm.force.cluster", module.getBwSwarmModule().isForceNewCluster()?"true":"false");
+			properties.setProperty("swarm.datapath.address", module.getBwSwarmModule().getDataPathAddr());
+			properties.setProperty("swarm.join.token", module.getBwSwarmModule().getJoinToken());
+			properties.setProperty("swarm.remote.manager", module.getBwSwarmModule().getRemoteManagerAddr());
+			if(module.getBwSwarmModule().isEnableServiceCreation()){
+				properties.setProperty("swarm.servicedata.location", module.getBwSwarmModule().getServiceData());
+				properties.setProperty("swarm.service.buildImage", module.getBwSwarmModule().isBuildImage()?"true":"false");
+				properties.setProperty("swarm.mavenhome", module.getBwSwarmModule().getMavenHome());
+
+				if(module.getBwSwarmModule().isEnableServiceUpdation()){
+
+					if(!module.getBwSwarmModule().isUseDockerImageForUpdate()){
+
+						properties.setProperty("swarm.serviceupdate.data.location", module.getBwSwarmModule().getServiceUpdateData());
+
+
+					}
+					else{
+						properties.setProperty("swarm.serviceupdate.usedockerimage", "true");
+					}
+
+				}
+				if(module.getBwSwarmModule().isEnableSwarmUpdate())
+					properties.setProperty("swarm.cluster.updatedata.location", module.getBwSwarmModule().getUpdateData());
+
+				if(module.getBwSwarmModule().isForceLeave())
+					properties.setProperty("swarm.force.leave", "true");
+				else
+					properties.setProperty("swarm.force.leave", "false");
+
+
+				File devfile = new File(getWorkspacepath() + File.separator + "swarm-dev.properties");
+				if(devfile.exists()) {
+					devfile.delete();
+				}
+				boolean done=false;
+				try {
+					done = devfile.createNewFile();
+				} catch (IOException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+				if(done) {
+					FileOutputStream fileOut=null;
+					try {
+						fileOut = new FileOutputStream(devfile);
+					} catch (FileNotFoundException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					String msg = "Your " + module.getBwDockerModule().getPlatform() + " platform properties";
+					try {
+						if(fileOut!=null)
+							properties.store(fileOut, msg);
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					try {
+						fileOut.close();
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					File prodfile = new File(getWorkspacepath() + File.separator + "swarm-prod.properties");
+					if(prodfile.exists()) {
+						prodfile.delete();
+					}
+					try {
+						Files.copy(devfile.toPath(), prodfile.toPath());
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
 			}
-			String msg = "Your " + module.getBwDockerModule().getPlatform() + " platform properties";
-			try {
-				if(fileOut!=null)
-				properties.store(fileOut, msg);
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			try {
-				fileOut.close();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			File prodfile = new File(getWorkspacepath() + File.separator + "swarm-prod.properties");
-			if(prodfile.exists()) {
-				prodfile.delete();
-			}
-			try {
-				Files.copy(devfile.toPath(), prodfile.toPath());
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
 		}
-		
-		
-		}
-		
+
 	}
 
 	private void createDockerPropertiesFiles() {
@@ -732,7 +744,7 @@ public abstract class AbstractPOMBuilder {
 			properties.setProperty("bwdocker.from", module.getBwDockerModule().getDockerImageFrom());
 			properties.setProperty("bwdocker.autoPullImage", (module.getBwDockerModule().isAutoPullImage()?"Always":"IfNotPresent"));
 			properties.setProperty("bwdocker.maintainer", module.getBwDockerModule().getDockerImageMaintainer());
-			
+
 
 			List<String> volumes = module.getBwDockerModule().getDockerVolumes();
 			if(volumes != null && volumes.size() > 0) {

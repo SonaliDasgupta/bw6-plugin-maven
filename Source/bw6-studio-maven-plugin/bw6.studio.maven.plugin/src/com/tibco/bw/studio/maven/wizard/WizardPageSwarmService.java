@@ -2,6 +2,8 @@ package com.tibco.bw.studio.maven.wizard;
 
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.ModifyEvent;
+import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
@@ -39,9 +41,12 @@ public class WizardPageSwarmService extends WizardPage{
 	//SERVICE UPDATION SECTION
 	private Label enableUpdateServiceLabel;
 	private Button enableServiceUpdation;
+	private Label useDockerImage;
+	private Button useDockerImageButton;
 	private Label serviceUpdateLabel;
 	private Text serviceUpdateFile;
 	private Button serviceUpdateBrowse;
+	
 	
 	
 
@@ -100,11 +105,15 @@ public class WizardPageSwarmService extends WizardPage{
 					serviceUpdateLabel.setVisible(true);
 					serviceUpdateFile.setVisible(true);
 					serviceUpdateBrowse.setVisible(true);
+					useDockerImage.setVisible(true);
+					useDockerImageButton.setVisible(true);
 				}
 				else{
 					serviceUpdateLabel.setVisible(false);
 					serviceUpdateFile.setVisible(false);
 					serviceUpdateBrowse.setVisible(false);
+					useDockerImage.setVisible(false);
+					useDockerImageButton.setVisible(false);
 				}
 				
 			}
@@ -118,7 +127,37 @@ public class WizardPageSwarmService extends WizardPage{
 		  });
 		  
 		  createBoundary("");
+		  useDockerImage = new Label(container, SWT.NONE);
+		  useDockerImage.setText("Use Docker Image");
+		  useDockerImageButton = new Button(container, SWT.CHECK);
+		  useDockerImageButton.addSelectionListener(new SelectionListener(){
+
+
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				if(useDockerImageButton.getSelection()){
+					serviceUpdateLabel.setVisible(false);
+					serviceUpdateFile.setVisible(false);
+					serviceUpdateBrowse.setVisible(false);
+					
+				}
+				else{
+					serviceUpdateLabel.setVisible(true);
+					serviceUpdateFile.setVisible(true);
+					serviceUpdateBrowse.setVisible(true);
+				}
+				
+			}
+
+			@Override
+			public void widgetDefaultSelected(SelectionEvent e) {
+				// TODO Auto-generated method stub
+				
+			}
+			  
+		  });
 		  
+		  createBoundary("");
 			  
 		  serviceUpdateLabel = new Label(container, SWT.NONE);
 		  serviceUpdateLabel.setText("Service Update file location"); //SET DEFAULT LOCATION FOR IT LATER
@@ -140,6 +179,7 @@ public class WizardPageSwarmService extends WizardPage{
 			serviceUpdateLabel.setVisible(false);
 			serviceUpdateFile.setVisible(false);
 			serviceUpdateBrowse.setVisible(false);
+			useDockerImageButton.setVisible(false);
 		
 	}
 
@@ -198,6 +238,10 @@ public class WizardPageSwarmService extends WizardPage{
 		
 		
 		
+	}
+	
+	public boolean isUseDockerImageForUpdate(){
+		return useDockerImageButton.getSelection();
 	}
 	
 	public String getServiceData(){

@@ -47,6 +47,8 @@ public class BWSwarmModule {
 	
 	private boolean enableServiceUpdation;
 	
+	private boolean useDockerImageForUpdate;
+	
 	private String serviceUpdateData;
 	
 	
@@ -211,6 +213,15 @@ public class BWSwarmModule {
 
 	public void setServiceUpdateData(String serviceUpdateData) {
 		this.serviceUpdateData = serviceUpdateData;
+	}
+
+
+	public boolean isUseDockerImageForUpdate() {
+		return useDockerImageForUpdate;
+	}
+
+	public void setUseDockerImageForUpdate(boolean useDockerImageForUpdate) {
+		this.useDockerImageForUpdate = useDockerImageForUpdate;
 	}
 	
 	

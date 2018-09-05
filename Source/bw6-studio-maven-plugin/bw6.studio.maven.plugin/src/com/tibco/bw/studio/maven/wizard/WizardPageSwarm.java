@@ -483,8 +483,19 @@ GridData specGrid = new GridData(200, 15);
 		
 		bwSwarm.setEnableServiceUpdation(swarmServicePage.getEnableServiceUpdation());
 		
-		if(swarmServicePage.getEnableServiceUpdation())
-		bwSwarm.setServiceUpdateData(swarmServicePage.getServiceUpdateFile());
+		if(swarmServicePage.getEnableServiceUpdation()){
+		
+			if(swarmServicePage.isUseDockerImageForUpdate()){
+				bwSwarm.setUseDockerImageForUpdate(true);
+				
+			}
+			else{
+				bwSwarm.setUseDockerImageForUpdate(false);
+			bwSwarm.setServiceUpdateData(swarmServicePage.getServiceUpdateFile());
+			
+			}
+		
+		}
 		
 		}
 		
