@@ -13,6 +13,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+
 import org.apache.maven.model.Activation;
 import org.apache.maven.model.Build;
 import org.apache.maven.model.Dependency;
@@ -25,6 +26,7 @@ import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
 import org.apache.maven.model.io.xpp3.MavenXpp3Writer;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 
+import com.tibco.bw.studio.maven.helpers.ManifestParser;
 import com.tibco.bw.studio.maven.modules.model.BWApplication;
 import com.tibco.bw.studio.maven.modules.model.BWDeploymentInfo;
 import com.tibco.bw.studio.maven.modules.model.BWModule;
@@ -32,11 +34,13 @@ import com.tibco.bw.studio.maven.modules.model.BWModuleType;
 import com.tibco.bw.studio.maven.modules.model.BWPCFServicesModule;
 import com.tibco.bw.studio.maven.modules.model.BWParent;
 import com.tibco.bw.studio.maven.modules.model.BWProject;
+import com.tibco.bw.studio.maven.wizard.MavenWizardContext;
 
 public abstract class AbstractPOMBuilder {
 	protected BWProject project; 
 	protected BWModule module;
 	protected Model model;
+	protected static String bwEdition=null;
 
 	protected void addParent(BWParent parentModule) {
 		Parent parent = new Parent();
@@ -102,7 +106,7 @@ public abstract class AbstractPOMBuilder {
 		}
 		plugin.setGroupId("com.tibco.plugins");
 		plugin.setArtifactId("bw6-maven-plugin");
-		plugin.setVersion("1.3.1");
+		plugin.setVersion("2.0.1");
 		plugin.setExtensions("true");
 		addDeploymentDetails(plugin);
 	}
@@ -259,7 +263,7 @@ public abstract class AbstractPOMBuilder {
 		plugin.setGroupId("io.fabric8");
 		plugin.setArtifactId("fabric8-maven-plugin");
 		plugin.setVersion("3.5.41");
-
+		
 		Xpp3Dom config = new Xpp3Dom("configuration");
 		Xpp3Dom child = new Xpp3Dom("skip");
 		child.setValue(String.valueOf(skip));
@@ -297,6 +301,7 @@ public abstract class AbstractPOMBuilder {
 		Xpp3Dom child = new Xpp3Dom("skip");
 		child.setValue("false");
 		config.addChild(child);
+		
 
 		child = new Xpp3Dom("dockerHost");
 		child.setValue("${bwdocker.host}");
@@ -319,6 +324,10 @@ public abstract class AbstractPOMBuilder {
 		Xpp3Dom buildchild = new Xpp3Dom("build");
 		Xpp3Dom child2 = new Xpp3Dom("from");
 		child2.setValue("${bwdocker.from}");
+		buildchild.addChild(child2);
+		
+		child2 = new Xpp3Dom("imagePullPolicy");
+		child2.setValue("${bwdocker.autoPullImage}");
 		buildchild.addChild(child2);
 
 		child2 = new Xpp3Dom("maintainer");
@@ -439,7 +448,6 @@ public abstract class AbstractPOMBuilder {
 		}
 	}
 	
-
 	private void createK8SPropertiesFiles() {
 		try {
 			Properties properties = new Properties();
@@ -510,7 +518,9 @@ public abstract class AbstractPOMBuilder {
 			properties.setProperty("docker.image", module.getBwDockerModule().getDockerImageName());
 			properties.setProperty("bwdocker.containername", module.getBwDockerModule().getDockerAppName());
 			properties.setProperty("bwdocker.from", module.getBwDockerModule().getDockerImageFrom());
+			properties.setProperty("bwdocker.autoPullImage", (module.getBwDockerModule().isAutoPullImage()?"Always":"IfNotPresent"));
 			properties.setProperty("bwdocker.maintainer", module.getBwDockerModule().getDockerImageMaintainer());
+			
 
 			List<String> volumes = module.getBwDockerModule().getDockerVolumes();
 			if(volumes != null && volumes.size() > 0) {
@@ -575,6 +585,7 @@ public abstract class AbstractPOMBuilder {
 			}
 			properties.setProperty("bwpcf.instances", module.getBwpcfModule().getInstances());
 			properties.setProperty("bwpcf.memory", module.getBwpcfModule().getMemory());
+			properties.setProperty("bwpcf.diskQuota", module.getBwpcfModule().getDiskQuota());
 			properties.setProperty("bwpcf.buildpack", module.getBwpcfModule().getBuildpack());
 
 			//Add cf env variables
@@ -673,6 +684,10 @@ public abstract class AbstractPOMBuilder {
 		child = new Xpp3Dom("memory");
 		child.setValue("${bwpcf.memory}");
 		config.addChild(child);
+		
+		child = new Xpp3Dom("diskQuota");
+		child.setValue("${bwpcf.diskQuota}");
+		config.addChild(child);
 
 		child = new Xpp3Dom("buildpack");
 		child.setValue("${bwpcf.buildpack}");
@@ -764,22 +779,17 @@ public abstract class AbstractPOMBuilder {
 	protected void initializeModel() {
 		File pomFile = module.getPomfileLocation();
 		model = readModel(pomFile);
-		if(model == null) {
-			model = new Model();
-		}
 	}
 
 	protected Model readModel(File pomXmlFile) {
 		Model model = null;
-		try {
-			Reader reader = new FileReader(pomXmlFile);
-			try {
-				MavenXpp3Reader xpp3Reader = new MavenXpp3Reader();
+		try (Reader reader = new FileReader(pomXmlFile)) {
+			MavenXpp3Reader xpp3Reader = new MavenXpp3Reader();
+			if (pomXmlFile.length() != 0)
 				model = xpp3Reader.read(reader);
-			} finally {
-				reader.close();
-			}
-		} catch(Exception e) {
+			else
+				model = new Model();
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		return model;
@@ -806,5 +816,48 @@ public abstract class AbstractPOMBuilder {
 			profiles.add(profile);
 		}
 		model.setProfiles(profiles);
+	}
+	protected static String setBwEdition(BWModule module)throws Exception{
+		Map<String, String> manifest = ManifestParser.parseManifest(module.getProject());
+		if (manifest.containsKey("TIBCO-BW-Edition") )				
+		{
+			String editions = manifest.get( "TIBCO-BW-Edition" );				
+			String[] editionList = editions.split(",");
+				for( String str : editionList )
+				{
+					switch ( str )
+					{
+					case "bwe":
+						bwEdition = "bw6";
+						break;
+
+					case "bwcf":
+						
+							switch ( MavenWizardContext.INSTANCE.getSelectedType() )
+							{
+							case PCF:
+								bwEdition = "cf";
+								break;
+								
+							case Docker:
+								bwEdition = "docker";
+								break;
+							
+							case None:
+								bwEdition = "bw6";
+								break;
+								
+							default:
+								break;
+							}
+						
+						break;
+				default:
+						break;
+					}
+					
+				}
+		}
+		return bwEdition;
 	}
 }

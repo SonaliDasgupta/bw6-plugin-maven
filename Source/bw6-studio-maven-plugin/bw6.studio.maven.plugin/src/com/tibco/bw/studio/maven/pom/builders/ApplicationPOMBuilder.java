@@ -2,12 +2,15 @@ package com.tibco.bw.studio.maven.pom.builders;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
 import org.apache.maven.model.Build;
 import org.apache.maven.model.Plugin;
+import org.apache.maven.model.ReportPlugin;
+import org.apache.maven.model.Reporting;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 
 import com.tibco.bw.studio.maven.helpers.ManifestParser;
@@ -16,7 +19,9 @@ import com.tibco.bw.studio.maven.modules.model.BWApplication;
 import com.tibco.bw.studio.maven.modules.model.BWDeploymentInfo;
 import com.tibco.bw.studio.maven.modules.model.BWModule;
 import com.tibco.bw.studio.maven.modules.model.BWProject;
-import com.tibco.zion.project.core.ContainerPreferenceProject;
+import com.tibco.bw.studio.maven.modules.model.BWTestInfo;
+import com.tibco.bw.studio.maven.wizard.BWProjectTypes;
+import com.tibco.bw.studio.maven.wizard.MavenWizardContext;
 
 public class ApplicationPOMBuilder extends AbstractPOMBuilder implements IPOMBuilder {
 	private String bwEdition;
@@ -29,36 +34,48 @@ public class ApplicationPOMBuilder extends AbstractPOMBuilder implements IPOMBui
 
 		this.project = project;
 		this.module = module;
-		
-		Map<String, String> manifest = ManifestParser.parseManifest(module.getProject());
-		if(manifest.containsKey("TIBCO-BW-Edition") && manifest.get("TIBCO-BW-Edition").equals("bwcf")) {
-			String targetPlatform = ContainerPreferenceProject.getCurrentContainer().getLabel();
-			if(targetPlatform.equals("Cloud Foundry")) {
-				bwEdition = "cf";
-			} else {
-				bwEdition = "docker";
-			}
-		} else {
-			bwEdition = "bw6";
-		}
-
+		bwEdition=setBwEdition(module);
 		initializeModel();
 		addPrimaryTags();
+		//addParent(ModuleHelper.getParentModule(project.getModules()));
+
+		if( model != null && model.getProperties() == null )
+		{
+			model.setProperties( new Properties());
+		}
+		model.getProperties().put("project.type", MavenWizardContext.INSTANCE.getSelectedType().toString());
+		
 		addParent(ModuleHelper.getParentModule(project.getModules()));
 
-		if(bwEdition.equals("cf")) {
+		if( MavenWizardContext.INSTANCE.getSelectedType() == BWProjectTypes.PCF )
+		{
 			addBWCloudFoundryProperties();
-		} else if(bwEdition.equals("docker")) {
+		} else if(MavenWizardContext.INSTANCE.getSelectedType() == BWProjectTypes.Docker )
+		{
 			String platform = module.getBwDockerModule().getPlatform();
 			addBWDockerProperties(platform);
 		}
 		addBuild();
+		addReporting();
 		generatePOMFile();
 	}
 
 	@Override
 	protected void addDeploymentDetails(Plugin plugin) {
-		if(!"bw6".equals(bwEdition)) {
+		BWTestInfo testInfo = ((BWApplication)module).getTestInfo();
+		
+		if( testInfo.getSkipTests() != null && !testInfo.getSkipTests().isEmpty())
+		{
+			model.getProperties().put("skipTests", testInfo.getSkipTests() );
+			model.getProperties().put("failIfNoTests", testInfo.getFailIfNoTests() );
+			model.getProperties().put("tibco.Home", testInfo.getTibcoHome() );
+			model.getProperties().put("bw.Home", testInfo.getBwHome() );
+		}
+		
+		
+		
+		if( MavenWizardContext.INSTANCE.getSelectedType() != BWProjectTypes.AppSpace )
+		{
 			return;
 		}
 		Properties properties = new Properties();
@@ -91,6 +108,8 @@ public class ApplicationPOMBuilder extends AbstractPOMBuilder implements IPOMBui
 			model.getProperties().remove("backup");
 			model.getProperties().remove("backupLocation");
 			model.getProperties().remove("profile");
+			model.getProperties().remove("externalProfile");
+			model.getProperties().remove("externalProfileLoc");
 			return;
 		}
 
@@ -212,6 +231,16 @@ public class ApplicationPOMBuilder extends AbstractPOMBuilder implements IPOMBui
 		model.addProperty("backupLocation", info.getBackupLocation());
 		properties.put("backupLocation", info.getBackupLocation());
 
+		Xpp3Dom externalProfile  = new Xpp3Dom("externalProfile");
+		externalProfile.setValue("${externalProfile}");
+		model.addProperty("externalProfile", Boolean.toString(info.isexternalProfile()));
+		properties.put("externalProfile", Boolean.toString(info.isexternalProfile()));
+
+		Xpp3Dom externalProfileLoc  = new Xpp3Dom("externalProfileLoc");
+		externalProfileLoc.setValue("${externalProfileLoc}");
+		model.addProperty("externalProfileLoc", info.getexternalProfileLoc());
+		properties.put("externalProfileLoc", info.getexternalProfileLoc());
+		
 		config.addChild(deployToAdmin);
 		config.addChild(agentHost);
 		config.addChild(agentPort);
@@ -235,6 +264,8 @@ public class ApplicationPOMBuilder extends AbstractPOMBuilder implements IPOMBui
 		config.addChild(backup);
 		config.addChild(backupLocation);
 		config.addChild(profile);
+		config.addChild(externalProfile);
+		config.addChild(externalProfileLoc);
 
 		plugin.setConfiguration(config);
 
@@ -257,7 +288,42 @@ public class ApplicationPOMBuilder extends AbstractPOMBuilder implements IPOMBui
 			}
 		}
 	}
-
+	
+	protected void addReporting()
+	{
+		
+		Reporting reporting = model.getReporting();
+		if( reporting == null )
+		{
+			reporting = new Reporting();
+			model.setReporting(reporting);
+		}
+		List<ReportPlugin> plugins = reporting.getPlugins();
+		if( plugins == null )
+		{
+			reporting.setPlugins( new ArrayList<ReportPlugin>());
+		}
+		
+		boolean isReporting = false;
+		for( ReportPlugin plugin : plugins )
+		{
+			if( plugin.getArtifactId().equals("bw6-maven-plugin"))
+			{
+				isReporting = true;
+				break;
+			}
+		}
+		
+		if( !isReporting )
+		{
+			ReportPlugin p = new ReportPlugin();
+			p.setGroupId("com.tibco.plugins");
+			p.setArtifactId("bw6-maven-plugin");
+			p.setVersion("2.0.1");
+			reporting.getPlugins().add(p);
+		}
+		
+	}
 	protected void addBuild() {
 		Build build = model.getBuild();
 		if(build == null) {
