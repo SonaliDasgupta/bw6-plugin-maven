@@ -23,6 +23,7 @@ import org.eclipse.core.filesystem.IFileStore;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectNature;
+import org.eclipse.core.resources.WorkspaceJob;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -286,18 +287,23 @@ public class BWMavenDependenciesBuilder extends BWAbstractBuilder{
 		for(BWExternalDependencyRecord handler : modules){
 			projects.add(handler.getProject());
 		}
-		
+		ModelHelper.INSTANCE.addModulesToApplication(projects, sourceProject);
 		TransactionalEditingDomain editingDomain = EditingDomainUtil.INSTANCE.getEditingDomain(); 
 		if(editingDomain != null){
 			
-			RecordingCommand command = new RecordingCommand(editingDomain) {
-				@Override
-				protected void doExecute() {
-					ModelHelper.INSTANCE.addModulesToApplication(projects, sourceProject);
-				}
-			};
+			
+			WorkspaceJob job = new WorkspaceJob(editingDomain.getID()) {
 
-			editingDomain.getCommandStack().execute(command);
+				@Override
+				public IStatus runInWorkspace(IProgressMonitor monitor)
+						throws CoreException {
+					ModelHelper.INSTANCE.addModulesToApplication(projects, sourceProject);
+					return Status.OK_STATUS;
+				}
+				
+			};
+			
+		job.schedule();
 		}
 	}
 
