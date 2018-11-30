@@ -288,23 +288,8 @@ public class BWMavenDependenciesBuilder extends BWAbstractBuilder{
 			projects.add(handler.getProject());
 		}
 		ModelHelper.INSTANCE.addModulesToApplication(projects, sourceProject);
-		TransactionalEditingDomain editingDomain = EditingDomainUtil.INSTANCE.getEditingDomain(); 
-		if(editingDomain != null){
-			
-			
-			WorkspaceJob job = new WorkspaceJob(editingDomain.getID()) {
-
-				@Override
-				public IStatus runInWorkspace(IProgressMonitor monitor)
-						throws CoreException {
-					ModelHelper.INSTANCE.addModulesToApplication(projects, sourceProject);
-					return Status.OK_STATUS;
-				}
-				
-			};
-			
-		job.schedule();
-		}
+		
+		
 	}
 
 	protected void registerDependencies(List<BWExternalDependencyRecord>records, IProject hostProject){
